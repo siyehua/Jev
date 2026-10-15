@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "generated_at": "2026-10-12T09:34:39.416165+00:00",
+    "model": "gemma3:12b",
+    "runs": 10,
+    "jev_url": "http://localhost:8000",
+    "ollama_url": "http://localhost:11434",
+    "prompt_chars": 566,
+    "jev_health": {
+      "status": "ok",
+      "model_loaded": true,
+      "backend": "ollama",
+      "model": "gemma3:12b",
+      "base_url": "http://localhost:11434",
+      "mode": "chat",
+      "server_version": "0.12.11",
+      "strategy": "single_token_generation"
+    },
+    "input": "My package arrived two weeks late, and my card was charged twice.",
+    "instructions": "Choose the category that best matches the customer's main issue.",
+    "criteria": {
+      "shipping": "A delivery, shipment, or package-arrival problem.",
+      "billing": "A payment, invoice, or duplicate-charge problem.",
+      "returns": "A return, refund, or exchange request."
+    }
+  },
+  "decision_rows": [
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 495.13496458530426,
+      "server_ms": 492.662,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 1
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 440.34890830516815,
+      "server_ms": 437.647,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 2
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 434.97714400291443,
+      "server_ms": 432.203,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 3
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 457.3555141687393,
+      "server_ms": 454.717,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 4
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 440.8399313688278,
+      "server_ms": 438.134,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 5
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 452.77780294418335,
+      "server_ms": 450.057,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 6
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 454.80528473854065,
+      "server_ms": 452.078,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 7
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 432.205468416214,
+      "server_ms": 429.553,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 8
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 434.5338046550751,
+      "server_ms": 431.884,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 9
+    },
+    {
+      "result": "billing",
+      "detail": "choice=billing p=0.999997 strategy=single_token_generation",
+      "wall_ms": 441.5702074766159,
+      "server_ms": 438.865,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 10
+    }
+  ],
+  "chat_rows": [
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 452.1050602197647,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 1
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 412.2477322816849,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 2
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 397.76790142059326,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 3
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 418.3494597673416,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 4
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 401.01251006126404,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 5
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 400.5931317806244,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 6
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 403.3169448375702,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 7
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 402.0436853170395,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 8
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 414.5810753107071,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 9
+    },
+    {
+      "result": "billing",
+      "detail": "raw_answer='B'",
+      "wall_ms": 411.6412550210953,
+      "server_ms": null,
+      "prompt_tokens": 146,
+      "generated_tokens": 2,
+      "run": 10
+    }
+  ],
+  "summary": {
+    "agreement": 10,
+    "decision_mean_ms": 448.4549030661583,
+    "chat_mean_ms": 411.3658756017685
+  }
+}

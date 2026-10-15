@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test / tooling caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Model weights & runtime artifacts (never commit)
+*.bin
+*.safetensors
+*.gguf
+*.onnx
+
+# Local runtime / logs
+*.log
+nohup.out
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store

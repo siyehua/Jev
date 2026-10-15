@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jev 决策接口 vs Ollama Chat 对比报告</title>
+<style>
+  :root {
+    --bg: #f4f6f9; --card: #ffffff; --ink: #1c2733; --dim: #64748b;
+    --accent: #2563eb; --decision: #2563eb; --chat: #0d9488;
+    --border: #e2e8f0; --good: #16a34a; --warn: #d97706;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--bg); color: var(--ink); padding: 32px 16px 64px; line-height: 1.6;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff;
+    border-radius: 14px; padding: 28px 32px; margin-bottom: 20px;
+  }
+  header h1 { font-size: 22px; font-weight: 650; margin-bottom: 6px; }
+  header p { opacity: .85; font-size: 13px; }
+  .chips { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.25);
+    padding: 3px 12px; border-radius: 999px; font-size: 12px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 26px; margin-bottom: 20px;
+  }
+  h2 { font-size: 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  h2::before { content: ""; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .kpi .label { font-size: 12px; color: var(--dim); }
+  .kpi .value { font-size: 26px; font-weight: 700; margin: 2px 0; }
+  .kpi .sub { font-size: 12px; color: var(--dim); }
+  .good { color: var(--good); } .warn { color: var(--warn); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  td.num { font-variant-numeric: tabular-nums; }
+  td.dim { color: var(--dim); font-size: 12px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag { font-size: 11px; padding: 1px 8px; border-radius: 999px; color: #fff; }
+  .decision-tag { background: var(--decision); }
+  .chat-tag { background: var(--chat); }
+  .chart { display: flex; align-items: flex-end; gap: 22px; padding: 10px 4px 0; flex-wrap: wrap; }
+  .rungroup { text-align: center; }
+  .runlabel { font-size: 11px; color: var(--dim); margin-bottom: 6px; }
+  .bars { display: flex; gap: 6px; align-items: flex-end; height: 170px; }
+  .barcol { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar { width: 34px; border-radius: 5px 5px 0 0; }
+  .bar.decision { background: var(--decision); }
+  .bar.chat { background: var(--chat); }
+  .barval { font-size: 11px; color: var(--dim); margin-top: 4px; }
+  .legend { display: flex; gap: 18px; font-size: 12px; color: var(--dim); margin-top: 12px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .hbarrow { display: grid; grid-template-columns: 150px 1fr 110px; gap: 12px; align-items: center; margin: 10px 0; font-size: 13px; }
+  .hbarlabel { color: var(--dim); text-align: right; }
+  .hbartrack { background: #eef2f7; border-radius: 6px; height: 22px; overflow: hidden; }
+  .hbar { height: 100%; border-radius: 6px; }
+  .hbar.decision { background: var(--decision); }
+  .hbar.chat { background: var(--chat); }
+  .hbarnote { font-variant-numeric: tabular-nums; }
+  .scenario { background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; font-size: 13px; }
+  .scenario code { background: #eef2f7; padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+  .notes li { margin: 8px 0; font-size: 13px; }
+  ul { padding-left: 18px; }
+  footer { text-align: center; color: var(--dim); font-size: 12px; margin-top: 8px; }
+  .disclaimer { font-size: 12px; color: var(--dim); border-left: 3px solid var(--warn); padding-left: 12px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Jev 决策接口 vs Ollama Chat — 对比报告</h1>
+  <p>同一 prompt、同一模型、同一硬件下的结果 / 耗时 / token 用量对比</p>
+  <div class="chips">
+    <span class="chip">模型: gemma3:12b</span>
+    <span class="chip">轮次: 10</span>
+    <span class="chip">后端: ollama · Ollama 0.12.11</span>
+    <span class="chip">策略: single_token_generation</span>
+    <span class="chip">生成时间: 2026-10-12 17:34:39</span>
+    <span class="chip">host: xuankehuang-21fllzcdoa · Linux</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi">
+    <div class="label">标签一致性</div>
+    <div class="value good">10/10</div>
+    <div class="sub">两接口选择相同标签的轮次</div>
+  </div>
+  <div class="kpi">
+    <div class="label">decision 热态均值</div>
+    <div class="value">448ms</div>
+    <div class="sub">/v1/decision（10 轮热态）</div>
+  </div>
+  <div class="kpi">
+    <div class="label">chat 热态均值</div>
+    <div class="value">411ms</div>
+    <div class="sub">/api/chat 直连（10 轮热态）</div>
+  </div>
+  <div class="kpi">
+    <div class="label">decision 附加开销</div>
+    <div class="value ">+9.0%</div>
+    <div class="sub">Jev 转发 + 标签匹配（相对 chat）</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>测试场景</h2>
+  <div class="scenario">
+    <p><b>输入：</b>My package arrived two weeks late, and my card was charged twice.</p>
+    <p><b>指令：</b>Choose the category that best matches the customer&#x27;s main issue.</p>
+    <table style="margin-top:10px">
+      <tr><th>标签</th><th>key</th><th>含义</th></tr>
+      <tr><td><code>A</code></td><td><code>shipping</code></td><td>A delivery, shipment, or package-arrival problem.</td></tr><tr><td><code>B</code></td><td><code>billing</code></td><td>A payment, invoice, or duplicate-charge problem.</td></tr><tr><td><code>C</code></td><td><code>returns</code></td><td>A return, refund, or exchange request.</td></tr>
+    </table>
+    <p style="margin-top:8px;color:var(--dim);font-size:12px">
+      prompt 长度 566 字符（模板 v2，两种模式使用完全相同的 prompt）
+    </p>
+  </div>
+</div>
+
+<div class="card">
+  <h2>每轮明细</h2>
+  <table>
+    <tr><th>轮次</th><th>模式</th><th>客户端耗时</th><th>服务端耗时</th><th>prompt tokens</th><th>生成 tokens</th><th>结果</th><th>明细</th></tr>
+    <tr>
+          <td>1</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">495ms</td>
+          <td class="num">493ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>1</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">452ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>2</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">440ms</td>
+          <td class="num">438ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>2</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">412ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>3</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">435ms</td>
+          <td class="num">432ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>3</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">398ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>4</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">457ms</td>
+          <td class="num">455ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>4</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">418ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>5</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">441ms</td>
+          <td class="num">438ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>5</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">401ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>6</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">453ms</td>
+          <td class="num">450ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>6</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">401ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>7</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">455ms</td>
+          <td class="num">452ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>7</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">403ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>8</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">432ms</td>
+          <td class="num">430ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>8</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">402ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>9</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">435ms</td>
+          <td class="num">432ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>9</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">415ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr><tr>
+          <td>10</td>
+          <td><span class="tag decision-tag">decision</span></td>
+          <td class="num">442ms</td>
+          <td class="num">439ms</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">choice=billing p=0.999997 strategy=single_token_generation</td>
+        </tr><tr>
+          <td>10</td>
+          <td><span class="tag chat-tag">chat</span></td>
+          <td class="num">412ms</td>
+          <td class="num">—</td>
+          <td class="num">146</td>
+          <td class="num">2</td>
+          <td>billing</td>
+          <td class="dim">raw_answer=&#x27;B&#x27;</td>
+        </tr>
+  </table>
+  <p class="disclaimer"></p>
+</div>
+
+<div class="card">
+  <h2>每轮耗时对比（热态）</h2>
+  <div class="chart">
+        <div class="rungroup">
+          <div class="runlabel">run 1</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:150px" title="495ms"></div><span class="barval">495ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:137px" title="452ms"></div><span class="barval">452ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 2</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:133px" title="440ms"></div><span class="barval">440ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:125px" title="412ms"></div><span class="barval">412ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 3</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:132px" title="435ms"></div><span class="barval">435ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:121px" title="398ms"></div><span class="barval">398ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 4</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:139px" title="457ms"></div><span class="barval">457ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:127px" title="418ms"></div><span class="barval">418ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 5</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:134px" title="441ms"></div><span class="barval">441ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:121px" title="401ms"></div><span class="barval">401ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 6</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:137px" title="453ms"></div><span class="barval">453ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:121px" title="401ms"></div><span class="barval">401ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 7</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:138px" title="455ms"></div><span class="barval">455ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:122px" title="403ms"></div><span class="barval">403ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 8</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:131px" title="432ms"></div><span class="barval">432ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:122px" title="402ms"></div><span class="barval">402ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 9</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:132px" title="435ms"></div><span class="barval">435ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:126px" title="415ms"></div><span class="barval">415ms</span></div>
+          </div>
+        </div>
+        <div class="rungroup">
+          <div class="runlabel">run 10</div>
+          <div class="bars">
+            <div class="barcol"><div class="bar decision" style="height:134px" title="442ms"></div><span class="barval">442ms</span></div>
+            <div class="barcol"><div class="bar chat" style="height:125px" title="412ms"></div><span class="barval">412ms</span></div>
+          </div>
+        </div></div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--decision)"></span>/v1/decision</span>
+    <span><span class="dot" style="background:var(--chat)"></span>/api/chat</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>汇总对比</h2>
+  <h2 style="font-size:13px;color:var(--dim)">热态平均耗时</h2>
+  
+      <div class="hbarrow">
+        <div class="hbarlabel">/v1/decision</div>
+        <div class="hbartrack"><div class="hbar decision" style="width:100%"></div></div>
+        <div class="hbarnote">448ms</div>
+      </div>
+  
+      <div class="hbarrow">
+        <div class="hbarlabel">/api/chat</div>
+        <div class="hbartrack"><div class="hbar chat" style="width:92%"></div></div>
+        <div class="hbarnote">411ms</div>
+      </div>
+  <h2 style="font-size:13px;color:var(--dim);margin-top:20px">token 用量（prompt + 生成）</h2>
+  
+      <div class="hbarrow">
+        <div class="hbarlabel">decision tokens</div>
+        <div class="hbartrack"><div class="hbar decision" style="width:100%"></div></div>
+        <div class="hbarnote">146 + 2 = 148</div>
+      </div>
+  
+      <div class="hbarrow">
+        <div class="hbarlabel">chat tokens</div>
+        <div class="hbartrack"><div class="hbar chat" style="width:100%"></div></div>
+        <div class="hbarnote">146 + 2 = 148</div>
+      </div>
+</div>
+
+<div class="card">
+  <h2>结论与说明</h2>
+  <ul class="notes">
+    <li><b>结果：</b>两接口 10/10 轮一致选择 <code>billing</code>；decision 接口额外返回全标签概率分布（结构化、保证是候选标签之一），chat 返回自由文本需自行解析。</li>
+    <li><b>耗时：</b>热态下两者接近（decision 约 +9%），因为都只对 Ollama 发一次请求，146 token prefill 是主要成本。decision 的耗时与模型输出长度无关（恒定 2 token）；chat 随模型输出长度增长。</li>
+    <li><b>token：</b>decision 恒为 prompt+2（num_predict=2 绕过 Ollama v0.12.x 的 logprobs 缺失 bug）；chat 本场景仅 2 token（模型只回答字母即停），若模型输出解释文本则显著增加。</li>
+    <li><b>冷启动：</b>首轮 decision 请求需 Ollama 装载模型（约 6s）；可用 <code>OLLAMA_KEEP_ALIVE=30m</code> 常驻规避。</li>
+    <li><b>为何 chat 耗时与 decision 接近甚至略快：</b>Ollama 后端的 decision 本质上也是一次生成请求（同样的 prefill + 生成 2 token，SPEC.md §8 回退模式），仅比 chat 直连多一跳服务转发（约 +9%）。本场景 chat 只生成 2 token 属于"最佳情况"；实测要求模型详细解释时 chat 耗时 2695ms / 52 token，而 decision 恒定约 450ms / 2 token——decision 的优势在于<b>耗时与模型输出长度解耦</b>，而非绝对更快。</li>
+    <li><b>诚实标注：</b>decision 在 Ollama 后端下报告 <code>strategy: single_token_generation</code> 与 <code>generated_tokens: 2</code>（SPEC.md §8 生成回退语义，非 decode-free）。</li>
+  </ul>
+  <p class="disclaimer">decision 返回的 probabilities 为标签间相对分数（softmax 归一），不是现实意义上的校准置信度（SPEC.md §7.6）。本报告数据仅代表本次运行环境：xuankehuang-21fllzcdoa · Linux-5.4.119-19.0009.40-x86_64-with-glibc2.28。</p>
+</div>
+
+<footer>Jev Decision API · benchmarks/compare_chat_vs_decision.py + make_html_report.py 生成</footer>
+</div>
+</body>
+</html>

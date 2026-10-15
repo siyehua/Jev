@@ -1,0 +1,49 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "device": "cuda",
+  "dtype": "float16",
+  "input_tokens": 139,
+  "think_tokens_limit": 256,
+  "normal_tokens_limit": 32,
+  "runs": 20,
+  "memory": {
+    "cpu_rss_mb": 1507.66,
+    "cuda_allocated_mb": 996.32
+  },
+  "direct_logits": {
+    "cold_ms": 242.546,
+    "warm_mean_ms": 26.683,
+    "warm_p50_ms": 26.243,
+    "warm_p95_ms": 28.756,
+    "result_preview": "shipping",
+    "generated_tokens": 0,
+    "prompt_tokens": 139
+  },
+  "chat_normal": {
+    "cold_ms": 1074.421,
+    "warm_mean_ms": 363.944,
+    "warm_p50_ms": 364.383,
+    "warm_p95_ms": 370.933,
+    "result_preview": "The best label for the customer's main issue is C. returns.",
+    "generated_tokens": 15,
+    "prompt_tokens": 139
+  },
+  "chat_think": {
+    "cold_ms": 1120.49,
+    "warm_mean_ms": 1110.7,
+    "warm_p50_ms": 1103.497,
+    "warm_p95_ms": 1133.662,
+    "result_preview": "billing",
+    "generated_tokens": 47,
+    "prompt_tokens": 158
+  },
+  "one_token_generation": {
+    "cold_ms": 24.669,
+    "warm_mean_ms": 27.753,
+    "warm_p50_ms": 25.321,
+    "warm_p95_ms": 37.094,
+    "result_preview": "The",
+    "generated_tokens": 1,
+    "prompt_tokens": 139
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "device": "cuda",
+  "dtype": "float16",
+  "input_tokens": 134,
+  "runs": 10,
+  "memory": {
+    "cpu_rss_mb": 1507.79,
+    "cuda_allocated_mb": 996.32
+  },
+  "direct_logits": {
+    "cold_ms": 3205.417,
+    "warm_mean_ms": 25.399,
+    "warm_p50_ms": 25.223,
+    "warm_p95_ms": 26.406,
+    "result_preview": "shipping"
+  },
+  "one_token_generation": {
+    "cold_ms": 1747.587,
+    "warm_mean_ms": 25.857,
+    "warm_p50_ms": 24.598,
+    "warm_p95_ms": 33.803,
+    "result_preview": "The"
+  },
+  "short_generation": {
+    "cold_ms": 575.826,
+    "warm_mean_ms": 365.765,
+    "warm_p50_ms": 365.283,
+    "warm_p95_ms": 370.762,
+    "result_preview": "The label that best matches the customer's main issue is:\n\nC"
+  }
+}
